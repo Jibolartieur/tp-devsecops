@@ -1,0 +1,30 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v3
+
+      - name: Installation & scan Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          # Scanen de l'image 
+          image-ref: 'nginx:latest'
+          format: 'table'
+          # Bloque le pipeline si failles CRITIQUES
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Validation
+        if: success()
+        run: echo "Aucune vulnérabilité critique détectée. Prêt au déploiement !"
